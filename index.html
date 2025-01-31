@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cardápio Digital</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <form id="form-item">
+        <div class="form-group">
+            <label for="nome">Nome do item:</label>
+            <input type="text" id="nome" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="preco">Preço (R$):</label>
+            <input type="number" id="preco" step="0.01" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="descricao">Descrição:</label>
+            <textarea id="descricao" rows="3" required></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="imagem-url">URL da imagem:</label>
+            <input type="url" id="imagem-url" required>
+        </div>
+        
+        <button type="submit">Adicionar ao Cardápio</button>
+    </form>
+
+    <div id="itens-lista"></div>
+
+    <script>
+        document.getElementById('form-item').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const novoItem = {
+                nome: document.getElementById('nome').value,
+                preco: parseFloat(document.getElementById('preco').value),
+                descricao: document.getElementById('descricao').value,
+                imagemUrl: document.getElementById('imagem-url').value
+            };
+
+            adicionarItem(novoItem);
+            e.target.reset();
+        });
+
+        async function adicionarItem(item) {
+            const placeholder = document.createElement('div');
+            placeholder.className = 'item-carregando';
+            placeholder.innerHTML = `
+                <p>Carregando item...</p>
+                <img src="https://media2.giphy.com/media/3oEjI6SIIHBdRxXI40/200w.gif?cid=6c09b95284v8yjeqlalaqa2es8jfa60s8f738mt0vj84pova&ep=v1_gifs_search&rid=200w.gif&ct=g" alt="Carregando" class="loading-img">
+            `;
+            
+            const lista = document.getElementById('itens-lista');
+            lista.prepend(placeholder);
+
+            try {
+                const response = await fetch(item.imagemUrl);
+                if (!response.ok) throw new Error('Imagem não encontrada');
+                
+                const itemElement = document.createElement('div');
+                itemElement.className = 'item';
+                itemElement.innerHTML = `
+                    <h3>${item.nome}</h3>
+                    <p class="preco">R$ ${item.preco.toFixed(2)}</p>
+                    <p>${item.descricao}</p>
+                    <img src="${item.imagemUrl}" alt="${item.nome}">
+                    <button class="delete-btn">Remover</button>
+                `;
+
+                itemElement.querySelector('.delete-btn').addEventListener('click', () => {
+                    itemElement.remove();
+                });
+
+                setTimeout(() => {
+                    placeholder.replaceWith(itemElement);
+                }, 1000);
+
+            } catch (error) {
+                placeholder.innerHTML = 'Erro ao carregar o item';
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+</html>
